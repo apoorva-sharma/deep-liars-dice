@@ -37,7 +37,6 @@ classdef LiarsCoins < handle
             % Inputs: bet (assumes -1 is a call)
             % Outputs: next_turn (-1 if game over), 
             %   loser (-1 if game not over)
-            
             if(bet == -1)
                 if obj.curr_bet <= obj.total_heads % curr player loses
                     obj.loser = obj.turn;
@@ -45,6 +44,8 @@ classdef LiarsCoins < handle
                     obj.loser = mod(obj.turn - 2,obj.num_players) + 1;
                 end 
                 obj.turn = -1;
+            elseif (bet <= obj.curr_bet)
+                error('Bet %d did not exceed last bet %d', bet, obj.curr_bet)
             else
                 obj.curr_bet = bet;
                 obj.turn = mod(obj.turn,obj.num_players) + 1;
