@@ -2,12 +2,15 @@ classdef (Abstract) Player < handle
     %PLAYER Generic player abstract
     %   Detailed explanation goes here
     
-    properties
+    properties (Abstract)
+        hand;
+        total_coins;
+        num_players;
         
     end
     
     methods (Abstract) 
-        initalize(obj, hand, total_coins, num_players);
+        initialize(obj, hand, total_coins, num_players);
             % Inputs: hand = num heads in this agent's hand
             %         total_coins = total coins in game
             %         num_players = number of players in the game

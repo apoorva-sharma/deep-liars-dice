@@ -36,10 +36,10 @@ classdef NaiveAgent < Player
 %             end
             
             % compute coins held by other players
-            available_coins = round(total_coins*(1 - 1/num_players));
-            display(available_coins)
+            unknown_coins = round(total_coins*(1 - 1/num_players));
+            display(unknown_coins)
             % compute distribution over probabilities of getting coins
-            bincdf = binocdf([0:available_coins],available_coins,0.5);
+            bincdf = binocdf([0:unknown_coins],unknown_coins,0.5);
             % set best bet to largest safe bet, add player's hand
             obj.best_bet = hand + find(bincdf<=obj.thresh,1,'last')-1;
             

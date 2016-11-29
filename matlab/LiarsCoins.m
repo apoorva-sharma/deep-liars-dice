@@ -25,8 +25,8 @@ classdef LiarsCoins < handle
             obj.curr_bet = 0;
             obj.turn = 1;
             
-            display('Game initialized...');
-            display('Player 1"s turn');
+            disp('Game initialized...');
+            disp('Player 1"s turn');
         end
         function hand = viewHand(obj,player)
             % Returns hand for [player]
