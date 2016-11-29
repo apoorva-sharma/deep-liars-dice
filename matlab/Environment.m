@@ -3,24 +3,36 @@ classdef Environment < handle
     %   Detailed explanation goes here
     
     properties
-        num_players = -1;
-        num_bots = -1;
-        bots = [];
+        players = [];
         coins_per_player = -1;
         lc_game = -1;
     end
     
     methods
-        function obj = Environment(np,cpp,nb)
-            % Inputs: num_players, coins_per_player, num_bots
-            obj.num_players = np;
-            obj.num_bots = nb;
+        function obj = Environment(players, cpp)
+            % Inputs: players = array of Players 
+            %         cpp = coins_per_player
+            obj.players = players;
             obj.coins_per_player = cpp;
             
+            % Initialize the LiarsCoins game
+            np = length(players);
+            nc = np*cpp;
             obj.lc_game = LiarsCoins(np,nc);
-            % TODO: Assign NaiveAgents to nb hands
             
+            % Initalize each player
+            for i = 1:length(players)
+                players(i).initalize(obj.lc_game.viewHand(i),nc,np);
+            end
             
+        end
+        
+        function playGame(obj)
+            turn = 1;
+            np = length(players);
+            while(1)
+                % TODO
+            end
         end
     end
     
