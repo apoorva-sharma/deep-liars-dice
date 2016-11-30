@@ -10,7 +10,7 @@ classdef Environment < handle
         player_hands = [];
         
         % For training the observer
-        X = []; % [--last bets--, player's hand]
+        X = []; % [
         
     end
     
@@ -47,8 +47,6 @@ classdef Environment < handle
             while(1)
                 % compute last_bets from round_bets to pass to player
                 last_bets = round_bets(1:end-1);
-                % add data to X
-                obj.X = [obj.X;[last_bets', obj.players{turn}.hand]];
                 % query bet
                 bet = obj.players{turn}.playTurn(last_bets);
                 % play turn

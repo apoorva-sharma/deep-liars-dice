@@ -1,0 +1,24 @@
+%% Test of Observer Training
+% Create an environment with 3 naive agents
+player1 = NaiveAgent(0.5);
+player2 = NaiveAgent(0.5);
+player3 = NaiveAgent(0.5);
+player4 = NaiveAgent(0.5);
+
+coins_per_player = 5;
+total_coins = coins_per_player*4;
+
+training_examples = [];
+
+
+niter = 1000;
+for iter = 1:niter
+    env = Environment({player1 player2}, 5, true);
+    env.playGame();
+    X = env.X;
+    training_examples = [training_examples; X];
+    total_heads = env.lc_game.total_heads;
+    
+end
+
+
