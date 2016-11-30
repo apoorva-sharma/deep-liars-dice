@@ -21,12 +21,12 @@ classdef Environment < handle
             
             % Initialize the LiarsCoins game
             np = length(players);
-            nc = np*cpp;
+            total_coins = np*cpp; % total number of coins
             obj.lc_game = LiarsCoins(np,cpp);
             
             % Initalize each player
             for i = 1:length(players)
-                players(i).initialize(obj.lc_game.viewHand(i),nc,np);
+                players(i).initialize(obj.lc_game.viewHand(i),total_coins,np);
             end
             
         end
