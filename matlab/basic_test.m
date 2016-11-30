@@ -8,8 +8,8 @@ coins_per_player = 5;
 
 losses = [0,0,0];
 
-niter = 100;
-for iter = 1:ntier
+niter = 1000;
+for iter = 1:niter
     env = Environment([player1 player2, player3], 5, true);
     loser = env.playGame();
     losses(loser) = losses(loser) + 1;
