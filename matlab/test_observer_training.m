@@ -12,6 +12,7 @@ player4 = NaiveAgent(0.5);
 
 coins_per_player = 5;
 total_coins = coins_per_player*4;
+oneHotEye = eye(total_coins+1);
 
 training_examples = [];
 training_labels = [];
@@ -24,10 +25,9 @@ for iter = 1:niter
     X = env.X;
     X(isnan(X)) = -10;
     training_examples = [training_examples; X];
-    total_heads = env.lc_game.total_heads;
-    one_hot_total_heads = zeros(size(X,1),total_coins+1);
-    one_hot_total_heads(:, total_heads+1) = 1;
-    training_labels = [training_labels; one_hot_total_heads]; 
+    Y = env.Y;
+    oneHotY = oneHotEye(Y+1,:);
+    training_labels = [training_labels; oneHotY]; 
 end
 
 training_examples = training_examples';
@@ -36,13 +36,31 @@ training_labels = training_labels';
 %%
 
 net = initObserverNet();
-[net,tr] = train(net,training_examples(4,:), training_labels);
+[net,tr] = train(net,training_examples, training_labels);
 
+%%
+full_example_i = find(sum((training_examples>=0),1)==3, 1, 'first');
 clf
-bar([0:20],net(training_examples(4,5437))/...
-    sum(net(training_examples(4,5437))))
-hold on; 
-stem([0:20],training_labels(:,5437))
+subplot(4,1,1)
+bar([0:20],net(training_examples(:,full_example_i-3))/...
+    sum(net(training_examples(:,full_example_i-3))))
+hold on
+stem([0:20],0.2*training_labels(:,full_example_i-3));
+subplot(4,1,2)
+bar([0:20],net(training_examples(:,full_example_i-2))/...
+    sum(net(training_examples(:,full_example_i-2))))
+hold on
+stem([0:20],0.2*training_labels(:,full_example_i-2));
+subplot(4,1,3)
+bar([0:20],net(training_examples(:,full_example_i-1))/...
+    sum(net(training_examples(:,full_example_i-1))))
+hold on
+stem([0:20],0.2*training_labels(:,full_example_i-1));
+subplot(4,1,4)
+bar([0:20],net(training_examples(:,full_example_i))/...
+    sum(net(training_examples(:,full_example_i))))
+hold on
+stem([0:20],0.2*training_labels(:,full_example_i));
 
 toc
 

@@ -10,8 +10,8 @@ classdef Environment < handle
         player_hands = [];
         
         % For training the observer
-        X = []; % [--last bets--, player's hand]
-        
+        X = []; % [--last bets--]
+        Y = []; % [unknown_num_heads]
     end
     
     methods
@@ -32,7 +32,7 @@ classdef Environment < handle
             obj.player_hands = zeros(1,length(obj.players));
             for i = 1:length(players)
                 player_hand = obj.lc_game.viewHand(i);
-                players{i}.initialize(player_hand,total_coins,np);
+                players{i}.initGame(player_hand,total_coins,np);
                 obj.player_hands(i) = player_hand;
             end
             
@@ -47,8 +47,9 @@ classdef Environment < handle
             while(1)
                 % compute last_bets from round_bets to pass to player
                 last_bets = round_bets(1:end-1);
-                % add data to X
-                obj.X = [obj.X;[last_bets', obj.players{turn}.hand]];
+                % add data to X,Y
+                obj.X = [obj.X;last_bets'];
+                obj.Y = [obj.Y;(obj.lc_game.total_heads - obj.lc_game.player_hands(turn))];
                 % query bet
                 bet = obj.players{turn}.playTurn(last_bets);
                 % play turn

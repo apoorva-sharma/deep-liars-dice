@@ -2,9 +2,9 @@ function [ net ] = initObserverNet(  )
 %INITOBSERVERNET Initializes observer neural network
 %   Detailed explanation goes here
 
-    hiddenLayerSize = [40,40];
+    hiddenLayerSize = [20];
     net = patternnet(hiddenLayerSize);
-    net.layers{length(hiddenLayerSize)+1}.transferFcn = 'logsig';
+    %net.layers{length(hiddenLayerSize)+1}.transferFcn = 'logsig';
 
     net.divideFcn = 'dividerand';  % Divide data randomly
     net.divideMode = 'sample';  % Divide up every sample
