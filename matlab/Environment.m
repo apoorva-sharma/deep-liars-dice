@@ -7,6 +7,7 @@ classdef Environment < handle
         coins_per_player = -1;
         lc_game = -1;
         silent = false;
+        player_hands = [];
         
     end
     
@@ -25,8 +26,11 @@ classdef Environment < handle
             obj.lc_game = LiarsCoins(np,cpp);
             
             % Initalize each player
+            obj.player_hands = zeros(1,length(obj.players));
             for i = 1:length(players)
-                players{i}.initialize(obj.lc_game.viewHand(i),total_coins,np);
+                player_hand = obj.lc_game.viewHand(i);
+                players{i}.initialize(player_hand,total_coins,np);
+                obj.player_hands(i) = player_hand;
             end
             
         end
@@ -62,12 +66,8 @@ classdef Environment < handle
             end
         end
         function showHands(obj)
-            hands = zeros(1,length(obj.players));
-            for i = 1:length(obj.players)
-                hands(i) = obj.players{i}.hand;
-            end
             display('Players hands:');
-            display(hands);
+            display(obj.player_hands);
         end
     end
     
