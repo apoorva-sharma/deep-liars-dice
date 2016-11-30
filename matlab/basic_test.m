@@ -11,7 +11,7 @@ losses = [0,0,0,0];
 
 niter = 1000;
 for iter = 1:niter
-    env = Environment([player1 player2 player3 player4], 5, true);
+    env = Environment([player1 player2], 5, true);
     loser = env.playGame();
     losses(loser) = losses(loser) + 1;
 end

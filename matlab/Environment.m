@@ -3,7 +3,7 @@ classdef Environment < handle
     %   Detailed explanation goes here
     
     properties
-        players = [];
+        players = cell(0);
         coins_per_player = -1;
         lc_game = -1;
         silent = false;
@@ -26,7 +26,7 @@ classdef Environment < handle
             
             % Initalize each player
             for i = 1:length(players)
-                players(i).initialize(obj.lc_game.viewHand(i),total_coins,np);
+                players{i}.initialize(obj.lc_game.viewHand(i),total_coins,np);
             end
             
         end
@@ -41,7 +41,7 @@ classdef Environment < handle
                 % compute last_bets from round_bets to pass to player
                 last_bets = round_bets(1:end-1);
                 % query bet
-                bet = obj.players(turn).playTurn(last_bets);
+                bet = obj.players{turn}.playTurn(last_bets);
                 % play turn
                 if(~obj.silent)
                     display(sprintf('Player %d bets %d', turn, bet));
@@ -64,7 +64,7 @@ classdef Environment < handle
         function showHands(obj)
             hands = zeros(1,length(obj.players));
             for i = 1:length(obj.players)
-                hands(i) = obj.players(i).hand;
+                hands(i) = obj.players{i}.hand;
             end
             display('Players hands:');
             display(hands);

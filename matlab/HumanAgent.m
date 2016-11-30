@@ -32,7 +32,7 @@ classdef HumanAgent < Player
             % compute distribution over probabilities of getting coins
             bincdf = binocdf([0:unknown_coins],unknown_coins,0.5);
             % set best bet to largest safe bet, add player's hand
-            obj.best_bet = hand + find(bincdf<=obj.thresh,1,'last')-1;
+%             obj.best_bet = hand + find(bincdf<=obj.thresh,1,'last')-1;
             
         end
         
@@ -41,19 +41,22 @@ classdef HumanAgent < Player
             %           ordering: if obj is player 3 in a 5 player game
             %            then last_bets = bets of [2,1,5,4]
             % Output: next_bet played by obj
-            max_bet = last_bets(end);
-            % compute coins held by other players
-            unknown_coins = round(obj.total_coins*(1 - 1/obj.num_players));
-            display(unknown_coins)
-            % compute distribution over probabilities of getting coins
-            bincdf = binocdf([0:unknown_coins],unknown_coins,0.5);
-            sprintf('Previous Bet:\n');
-            max_bet_odds = bincdf(max([0 (max_bet - obj.hand)]));
-            sprintf('Odds -- %f\n', max_bet_odds);
-            sprintf('Possible Bets:\n')
-            for i = 1:obj.bets_to_display
-                bet_i_odds = bincdf(max([0 (max_bet + i - obj.hand)]));
-                sprintf('%d heads -- $f\n',max_bet+i, bet_i_odds);
+            disp('In Human playTurn')
+            if ~isempty(last_bets)
+                max_bet = last_bets(end);
+                % compute coins held by other players
+                unknown_coins = round(obj.total_coins*(1 - 1/obj.num_players));
+                display(unknown_coins)
+                % compute distribution over probabilities of getting coins
+                bincdf = binocdf([0:unknown_coins],unknown_coins,0.5);
+                fprintf('Previous Bet:\n');
+                max_bet_odds = bincdf(max([1 (max_bet - obj.hand)]));
+                fprintf('%d heads -- %f\n', max_bet, max_bet_odds);
+            end
+            fprintf('Possible Bets:\n')
+            for i = 1:min([obj.bets_to_display obj.total_coins])
+                bet_i_odds = bincdf(max([1 (max_bet + i - obj.hand)]));
+                fprintf('%d heads -- $f\n',max_bet+i, bet_i_odds);
             end
             no_bet = 1;
             while(no_bet)
