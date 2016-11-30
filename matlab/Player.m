@@ -10,7 +10,7 @@ classdef (Abstract) Player < handle
     end
     
     methods (Abstract) 
-        initialize(obj, hand, total_coins, num_players);
+        initGame(obj, hand, total_coins, num_players);
             % Inputs: hand = num heads in this agent's hand
             %         total_coins = total coins in game
             %         num_players = number of players in the game

@@ -17,7 +17,7 @@ classdef HumanAgent < Player
             %           calls a bet or chooses a bet
             obj.name = name;
         end
-        function initialize(obj,hand, total_coins, num_players)
+        function initGame(obj,hand, total_coins, num_players)
             % Inputs: hand = num heads in this agent's hand
             %         total_coins = total coins in game
             %         num_players = number of players in the game
