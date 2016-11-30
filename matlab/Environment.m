@@ -29,7 +29,7 @@ classdef Environment < handle
             obj.player_hands = zeros(1,length(obj.players));
             for i = 1:length(players)
                 player_hand = obj.lc_game.viewHand(i);
-                players{i}.initGame(player_hand,total_coins,np);
+                players{i}.initialize(player_hand,total_coins,np);
                 obj.player_hands(i) = player_hand;
             end
             
