@@ -13,14 +13,14 @@ classdef LiarsCoins < handle
     end
     
     methods
-        function obj = LiarsCoins(np, nc)
-            % Inputs: num_players, num_coins
+        function obj = LiarsCoins(num_players, coins_per_player)
+            % Inputs: num_players, num_coins_per_player
             
-            obj.num_players = np;
-            obj.num_coins_per_player = nc;
+            obj.num_players = num_players;
+            obj.num_coins_per_player = coins_per_player;
             
             % Init game
-            obj.player_hands = randi([0,nc],1,np);
+            obj.player_hands = randi([0,coins_per_player],1,num_players);
             obj.total_heads = sum(obj.player_hands);
             obj.curr_bet = 0;
             obj.turn = 1;
