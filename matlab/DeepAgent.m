@@ -16,6 +16,7 @@ classdef DeepAgent < Player
         piNet = -1;
         QNet = -1;
         
+        training = true;
         gamesSinceLastTrain = -1;
         gamesBetweenTraining = 500;
         
@@ -60,7 +61,7 @@ classdef DeepAgent < Player
             obj.QNet = QNet;
             
             obj.gamesSinceLastTrain = 0;
-
+            obj.training = training;
             
             % Initialize observer buffers
             obs_buffer_size = 100000;
