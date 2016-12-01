@@ -45,6 +45,20 @@ classdef DeepAgent < Player
             obj.obsNet = obsNet;
             obj.piNet = piNet;
             obj.QNet = QNet;
+            
+            % Initialize observer buffers
+            obs_buffer_size = 100000;
+            obj.obsX = CircBuffer([obs_buffer_size, 3]);
+            obj.obsY = CircBuffer([obs_buffer_size, 1]);
+            
+            % Initialize pi buffers
+            pi_buffer_size = 100000;
+            obj.PiX = ReservoirBuffer(pi_buffer_size,23);
+            
+            % Initialize Q buffers
+            Q_buffer_size = 100000;
+            obj.QX = CircBuffer([Q_buffer_size, 46]);
+            
         end
         function initGame(obj,hand, total_coins, num_players)
             % Inputs: hand = num heads in this agent's hand
@@ -100,15 +114,15 @@ classdef DeepAgent < Player
             
             % Add logs to replay memories
             % ObsNet
-            obj.obsX = [obj.obsX; obj.o_log];
-            obj.obsY = [obj.obsY; obj.unknown_coins_log];
+            obj.obsX.push(obj.o_log);
+            obj.obsY.push(obj.unknown_coins_log);
 
             % PiNet
-            obj.PiX = [obj.PiX; [obj.b_log obj.l_log obj.a_log]];
+            obj.PiX.push([obj.b_log obj.l_log obj.a_log]);
 
             % QNet
-            obj.QX = [obj.QX; [obj.b_log obj.l_log obj.a_log obj.r_log...
-                                obj.bp_log obj.lp_log]];
+            obj.QX.push([obj.b_log obj.l_log obj.a_log obj.r_log...
+                                obj.bp_log obj.lp_log]);
         end
     end
     
