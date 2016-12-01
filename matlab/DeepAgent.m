@@ -114,6 +114,3 @@ classdef DeepAgent < Player
     
 end
 
-
-
-

@@ -70,6 +70,9 @@ classdef HumanAgent < Player
                 end
             end
         end
+        function debrief(obj, reward, total_heads, hand);
+            return;
+        end
     end
     
 end
