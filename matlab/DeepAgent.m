@@ -44,7 +44,7 @@ classdef DeepAgent < Player
     end
     
     methods
-        function obj = DeepAgent(obsNet, piNet, QNet)
+        function obj = DeepAgent(obsNet, piNet, QNet, training)
             % Constructor for a DeepAgent
             % Inputs: obsNet: neural network mapping last_bets to
             %                 distribution on unknown_heads
@@ -53,6 +53,8 @@ classdef DeepAgent < Player
             %         QNet: a neural network mapping belief over
             %               total_heads, current_bet, and action to the 
             %               Q value.
+            %         training: bool for whether the nets should be trained
+            
             obj.obsNet = obsNet;
             obj.piNet = piNet;
             obj.QNet = QNet;
@@ -84,7 +86,7 @@ classdef DeepAgent < Player
             obj.num_players = num_players;
             
             % determine whether we use esp-greedy Q or pi for this game
-            obj.useQ = rand <= obj.eta;
+            obj.useQ = (rand <= obj.eta) && training;
             
             % reset the current game logs
             obj.o_log = []; % log of all observations in one game
@@ -185,9 +187,11 @@ classdef DeepAgent < Player
             % decide whether to train
             obj.gamesSinceLastTrain = obj.gamesSinceLastTrain + 1;
             if obj.gamesSinceLastTrain >= obj.gamesBetweenTraining
-                obj.trainObserverNetwork();
-                obj.trainPiNetwork();
-                obj.trainQNetwork();
+                if(training)
+                    obj.trainObserverNetwork();
+                    obj.trainQNetwork();
+                    obj.trainPiNetwork();
+                end
                 obj.gamesSinceLastTrain = 0;
             end
         end
