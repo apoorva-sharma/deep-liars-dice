@@ -173,9 +173,11 @@ classdef DeepAgent < Player
             % Query training data from buffers
             X = obj.obsX.getBuffer();
             Y = obj.obsY.getBuffer();
+            % Replace NaNs with -10
+            X(isnan(X)) = -10;
             % Make Y a 1-hot encoding
-            I = eye(obj.total_coins + 1);
-            Y = I(Y,:);
+            I = eye(obj.total_coins + 1 - obj.total_coins/obj.num_players);
+            Y = I(Y+1,:);
             % Train the net
             X = X';
             Y = Y';
