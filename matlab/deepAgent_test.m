@@ -27,7 +27,7 @@ end
 
 training_examples = training_examples';
 training_labels = training_labels';
-
+%%
 obsNet = initObserverNet();
 [obsNet,tr] = train(obsNet,training_examples, training_labels);
 
@@ -42,7 +42,8 @@ tic
 losses = [0,0,0,0];
 niter = 10000;
 for iter = 1:niter
-    env = Environment({player1 player2 player3 player4}, coins_per_player, true);
+    playerlist = {player1 player2 player3 player4};
+    env = Environment(playerlist(randperm(4)), coins_per_player, true);
     loser = env.playGame();
     losses(loser) = losses(loser) + 1;
 end

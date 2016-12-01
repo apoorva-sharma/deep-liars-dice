@@ -121,7 +121,7 @@ classdef DeepAgent < Player
                 qx = [repmat([b;l],[1 length(actions)]); actions];
                 qvals = obj.QNet(qx);
                 [~,besta_i] = max(qvals);
-                if rand > eps
+                if rand > obj.epsilon
                     a = actions(besta_i);
                 else
                     a = randsample(actions,1);
@@ -158,6 +158,9 @@ classdef DeepAgent < Player
         end
         
         function [] = debrief(obj,reward,total_heads,hand)
+            if isempty(obj.o_log)
+                return % no need to do anything if we didn't really play
+            end
             % Fill in missing items in logs
             obj.r_log(end,:) = reward;
             obj.unknown_coins_log(:) = total_heads - hand;
