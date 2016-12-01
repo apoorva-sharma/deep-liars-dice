@@ -7,7 +7,7 @@ classdef DeepAgent < Player
         total_coins = -1;
         num_players = -1;
         
-        eta = 0.4; % anticipatory parameter
+        eta = 0.1; % anticipatory parameter
         epsilon = 0.2; % epsilon for epsilon-greedy Q
         
         useQ = -1; % whether we choose eps-greedy Q instead of Pi
@@ -45,7 +45,7 @@ classdef DeepAgent < Player
     end
     
     methods
-        function obj = DeepAgent(obsNet, piNet, QNet, training)
+        function obj = DeepAgent(obsNet, piNet, QNet)
             % Constructor for a DeepAgent
             % Inputs: obsNet: neural network mapping last_bets to
             %                 distribution on unknown_heads
@@ -61,7 +61,6 @@ classdef DeepAgent < Player
             obj.QNet = QNet;
             
             obj.gamesSinceLastTrain = 0;
-            obj.training = training;
             
             % Initialize observer buffers
             obs_buffer_size = 100000;
@@ -87,7 +86,7 @@ classdef DeepAgent < Player
             obj.num_players = num_players;
             
             % determine whether we use esp-greedy Q or pi for this game
-            obj.useQ = (rand <= obj.eta) && training;
+            obj.useQ = (rand <= obj.eta) && obj.training;
             
             % reset the current game logs
             obj.o_log = []; % log of all observations in one game
@@ -188,7 +187,7 @@ classdef DeepAgent < Player
             % decide whether to train
             obj.gamesSinceLastTrain = obj.gamesSinceLastTrain + 1;
             if obj.gamesSinceLastTrain >= obj.gamesBetweenTraining
-                if(training)
+                if(obj.training)
                     obj.trainObserverNetwork();
                     obj.trainQNetwork();
                     obj.trainPiNetwork();

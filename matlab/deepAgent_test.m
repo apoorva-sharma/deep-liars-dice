@@ -38,7 +38,7 @@ load MKObsTest.mat
 piNet = initPiNet(total_coins, 20);
 QNet = initQNet(total_coins, 20);
 
-%% Initialize agents and play
+%% Initialize agents and play to train
 % one deep agent against 3 naive agents
 player1 = DeepAgent(obsNet, piNet, QNet);
 tic
@@ -52,6 +52,18 @@ for iter = 1:niter
     losses(ordering(loser)) = losses(ordering(loser)) + 1;
 end
 
+
+%% Now, play to WIN
+player1.training = false;
+losses = [0,0,0,0];
+niter = 1000;
+for iter = 1:niter
+    playerlist = {player1 player2 player3 player4};
+    ordering = randperm(4);
+    env = Environment(playerlist(ordering), coins_per_player, true);
+    loser = env.playGame();
+    losses(ordering(loser)) = losses(ordering(loser)) + 1;
+end
+
 bar(losses./sum(losses));
 title('Lose rate of each player');
-
