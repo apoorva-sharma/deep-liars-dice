@@ -50,6 +50,9 @@ classdef NaiveAgent < Player
                 next_bet = obj.best_bet;
             end
         end
+        function debrief(obj, reward, total_heads, hand);
+            return;
+        end
     end
     
 end

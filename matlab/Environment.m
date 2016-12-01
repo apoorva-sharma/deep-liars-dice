@@ -8,7 +8,7 @@ classdef Environment < handle
         lc_game = -1;
         silent = false;
         player_hands = [];
-        
+        loss_reward = -1;
         % For training the observer
         X = []; % [--last bets--]
         Y = []; % [unknown_num_heads]
@@ -64,6 +64,14 @@ classdef Environment < handle
                     if(~obj.silent)
                         obj.showHands();
                         display(sprintf('Game was lost by Player %d',loser));
+                    end
+                    for i = 1:length(obj.players)
+                        if loser == i
+                            reward = obj.loss_reward;
+                        else
+                            reward = 0;
+                        end
+                        obj.players{i}.debrief(reward, obj.lc_game.total_heads, obj.lc_game.viewHand(i));
                     end
                     break
                 end
