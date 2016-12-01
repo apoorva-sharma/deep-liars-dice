@@ -8,13 +8,20 @@ player4 = NaiveAgent(0.5);
 coins_per_player = 5;
 
 losses = [0,0,0,0];
-
+pos_count = zeros(4);
+ordering = [1 2 3 4];
 niter = 1000;
 for iter = 1:niter
-    env = Environment({player1 player2}, 5, true);
+    playerlist = {player1 player2 player3 player4};
+    ordering = circshift(ordering, 1, 2);
+    for i = 1:4
+        pos_count(ordering(i), i) = pos_count(ordering(i),i) + 1;
+    end
+    env = Environment(playerlist(ordering), 5, true);
     loser = env.playGame();
-    losses(loser) = losses(loser) + 1;
+    losses(ordering(loser)) = losses(ordering(loser)) + 1;
 end
 
 bar(losses./sum(losses));
+losses
 title('Lose rate of each player');
