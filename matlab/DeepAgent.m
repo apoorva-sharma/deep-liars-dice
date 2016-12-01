@@ -6,6 +6,12 @@ classdef DeepAgent < Player
         hand = -1;
         total_coins = -1;
         num_players = -1;
+        
+        eta = 0.4; % anticipatory parameter
+        epsilon = 0.2; % epsilon for epsilon-greedy Q
+        
+        useQ = -1; % whether we choose eps-greedy Q instead of Pi
+        
         obsNet = -1;
         piNet = -1;
         QNet = -1;
@@ -69,6 +75,9 @@ classdef DeepAgent < Player
             obj.total_coins = total_coins;
             obj.num_players = num_players;
             
+            % determine whether we use esp-greedy Q or pi for this game
+            obj.useQ = rand <= eta;
+            
             % reset the current game logs
             obj.o_log = []; % log of all observations in one game
             obj.b_log = []; % log of all beliefs in one game
@@ -87,7 +96,38 @@ classdef DeepAgent < Player
             %            then last_bets = bets of [2,1,5,4]
             % Output: next_bet played by obj
             
-            % TODO write the action selection code
+            % Based on Heinrich and Silver, 28 Jun 2016
+            
+            % define given variables
+            o = last_bets'; % observations are last_bets made by opponents
+            l = last_bets(1); % l is the bet immediately before this one.
+            
+            % get belief from observer net
+            b = obj.obsNet(o);
+            
+            % Sample action at from policy
+            if useQ
+                actions = [-1 l+1:obj.total_coins];
+                qx = [repmat([b;l],[1 length(actions)]); actions];
+                qvals = QNet(qx);
+                [~,besta_i] = max(qvals);
+                if rand > eps
+                    a = actions(besta_i);
+                else
+                    a = randsample(actions,1);
+                end
+            else
+                actions = [-1:obj.total_coins];
+                probs = PiNet([b;l]) + eps*ones(size(actions));
+                % prune away illegal actions
+                validactions = actions([1,l+3:obj.total_coins]);
+                validprobs = probs([1,l+3:obj.total_coins]);
+                
+                a = randsample(validactions,1,true,validprobs);
+            end
+            
+            % Execute Action
+            next_bet = a;
             
             % Log the turn
             %  first fill in last row
@@ -118,7 +158,9 @@ classdef DeepAgent < Player
             obj.obsY.push(obj.unknown_coins_log);
 
             % PiNet
-            obj.PiX.push([obj.b_log obj.l_log obj.a_log]);
+            if useQ
+                obj.PiX.push([obj.b_log obj.l_log obj.a_log]);
+            end
 
             % QNet
             obj.QX.push([obj.b_log obj.l_log obj.a_log obj.r_log...
