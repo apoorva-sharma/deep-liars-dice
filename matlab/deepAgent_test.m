@@ -38,11 +38,12 @@ obsNet = net;
 %% Initialize Pi and Q nets without training
 piNet = initPiNet(total_coins, 20);
 QNet = initQNet(total_coins, 20);
+player1 = DeepAgent(obsNet, piNet, QNet);
 
 %% Initialize agents and play to train
 % one deep agent against 3 naive agents
-player1 = DeepAgent(obsNet, piNet, QNet);
-tic
+
+player1.training = true;
 losses = [0,0,0,0];
 niter = 10000;
 for iter = 1:niter
@@ -57,7 +58,7 @@ end
 %% Now, play to WIN
 player1.training = false;
 losses = [0,0,0,0];
-niter = 1000;
+niter = 5000;
 for iter = 1:niter
     playerlist = {player1 player2 player3 player4};
     ordering = randperm(4);
