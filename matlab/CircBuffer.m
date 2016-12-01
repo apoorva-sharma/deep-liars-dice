@@ -18,13 +18,15 @@ classdef CircBuffer < handle
             obj.current_size = 0;
         end
         
-        function push(obj, vector)
-            % Pushes an object onto the buffer, overwriting the oldest
-            % entry if we're out of room
-            obj.data(obj.i,:) = vector;
-            obj.i = mod(obj.i,obj.total_size) + 1;
-            if obj.current_size < obj.total_size
-                obj.current_size = obj.current_size + 1;
+        function push(obj, newdata)
+            % Pushes all rows in newdata onto the buffer, overwriting 
+            % the oldest entries if we're out of room
+            for j = 1:size(newdata,1);
+                obj.data(obj.i,:) = newdata(j,:);
+                obj.i = mod(obj.i,obj.total_size) + 1;
+                if obj.current_size < obj.total_size
+                    obj.current_size = obj.current_size + 1;
+                end
             end
         end
         
