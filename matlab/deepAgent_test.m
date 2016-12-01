@@ -33,6 +33,7 @@ obsNet = initObserverNet();
 
 %% Load previously trained ObsNet
 load MKObsTest.mat
+obsNet = net;
 
 %% Initialize Pi and Q nets without training
 piNet = initPiNet(total_coins, 20);
@@ -40,7 +41,7 @@ QNet = initQNet(total_coins, 20);
 
 %% Initialize agents and play to train
 % one deep agent against 3 naive agents
-player1 = DeepAgent(obsNet, piNet, QNet, true);
+player1 = DeepAgent(obsNet, piNet, QNet);
 tic
 losses = [0,0,0,0];
 niter = 10000;

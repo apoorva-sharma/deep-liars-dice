@@ -243,7 +243,10 @@ classdef DeepAgent < Player
                     % get Q(bp,lp,all a)
                     actions = [-1:obj.total_coins];
                     qx = [repmat([bp,lp]',[1 length(actions)]); actions];
-                    Qvals = obj.QNet(qx);
+                    if(isconfigured(obj.QNet))
+                        Qvals = obj.QNet(qx);
+                    else Qvals = 0;
+                    end
 %                     num_actions = obj.total_coins + 2;
 %                     net_inputs = ones(num_actions,obj.total_coins + 3);
 %                     net_inputs(:,1:21) = repmat(bp;
