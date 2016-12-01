@@ -190,9 +190,11 @@ classdef DeepAgent < Player
             % Query training data from buffers
             X = obj.obsX.getBuffer();
             Y = obj.obsY.getBuffer();
+            % Replace NaNs with -10
+            X(isnan(X)) = -10;
             % Make Y a 1-hot encoding
-            I = eye(obj.total_coins + 1);
-            Y = I(Y,:);
+            I = eye(obj.total_coins + 1 - obj.total_coins/obj.num_players);
+            Y = I(Y+1,:);
             % Train the net
             X = X';
             Y = Y';
@@ -206,7 +208,7 @@ classdef DeepAgent < Player
             
             % Query training data from buffers
             buffer = obj.QX.getBuffer();
-            X = buffer(1:obj.total_coins + 2,:);
+            X = buffer(1:obj.total_coins + 3,:);
             % Generate targets using Bellman Equation
             Y = zeros(size(buffer,1),1);
             for i = 1:size(buffer,1)
@@ -244,7 +246,7 @@ classdef DeepAgent < Player
             % Query training data from buffers
             buffer = obj.PiX.getBuffer();
             X = buffer(1:obj.total_coins+2,:);
-            Y = buffer(obj.total_coins+3,:);
+            Y = buffer(obj.total_coins+2,:);
             Y = Y + 2; % [-1~20] encoded as [1~22] 
             % Make Y a 1-hot encoding
             num_actions = obj.total_coins+2;

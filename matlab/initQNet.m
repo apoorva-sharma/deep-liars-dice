@@ -1,0 +1,25 @@
+function [ net ] = initQNet( total_coins, hiddenLayerSize )
+%INITQNET Initializes Q neural network
+%   Detailed explanation goes here
+
+    inputsize = total_coins + 3; % [b,l,a]
+    outputsize = 1; % just a Q value
+    
+    trainFcn = 'trainlm';  % Levenberg-Marquardt backpropagation.
+    net = fitnet(hiddenLayerSize,trainFcn);
+    x = randi(10,[inputsize,1]);
+    y = randi(10,[outputsize,1]);
+    net = configure(net,x,y);
+    net.layers{length(hiddenLayerSize)+1}.size = outputsize;
+
+    net.divideFcn = 'dividerand';  % Divide data randomly
+    net.divideMode = 'sample';  % Divide up every sample
+    net.divideParam.trainRatio = 70/100;
+    net.divideParam.valRatio = 15/100;
+    net.divideParam.testRatio = 15/100;
+
+    net.performFcn = 'crossentropy';  % Cross-Entropy
+
+
+end
+
