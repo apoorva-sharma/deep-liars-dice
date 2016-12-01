@@ -124,6 +124,81 @@ classdef DeepAgent < Player
             obj.QX.push([obj.b_log obj.l_log obj.a_log obj.r_log...
                                 obj.bp_log obj.lp_log]);
         end
+        
+        function trainObserverNetwork(obj)
+            % Trains observer net using data in observer buffers
+            
+            % Query training data from buffers
+            X = obj.obsX.getBuffer();
+            Y = obj.obsY.getBuffer();
+            % Make Y a 1-hot encoding
+            I = eye(obj.total_coins + 1);
+            Y = I(Y,:);
+            % Train the net
+            X = X';
+            Y = Y';
+            [net,tr] = train(obj.obsNet,X,Y);
+            obj.obsNet = net;
+            
+        end
+        
+        function trainQNetwork(obj)
+            % Trains Q net using data in observer buffers
+            
+            % Query training data from buffers
+            buffer = obj.QX.getBuffer();
+            X = buffer(1:obj.total_coins + 2,:);
+            % Generate targets using Bellman Equation
+            Y = zeros(size(buffer,1),1);
+            for i = 1:size(buffer,1)
+%                 b = buffer(i,1:obj.total_coins+1);
+%                 l = buffer(i,obj.total_coins+2);
+%                 a = buffer(i,obj.total_coins+3);
+                r = buffer(i,obj.total_coins+4);
+                bp = buffer(i,obj.total_coins+5:2*obj.total_coins+5);
+                lp = buffer(i,2*obj.total_coins+6);
+                if(isnan(bp)) % terminal state
+                    Y(i) = r;
+                else
+                    % get Q(bp,lp,all a)
+                    num_actions = obj.total_coins + 2;
+                    net_inputs = ones(num_actions,obj.total_coins + 3);
+                    net_inputs(:,1:21) = bp;
+                    net_inputs(:,22) = lp;
+                    net_inputs(:,23) = (1:num_actions)';
+                    Qvals = obj.QNet(net_inputs');
+                    % Update Q(b,l,a) = r + max_ap Q_old(bp,lp,ap)
+                    Y(i) = r + max(Qvals);
+                end
+            end
+            
+            % Train the net
+            X = X';
+            Y = Y';
+            [net,tr] = train(obj.QNet,X,Y);
+            obj.QNet = net;
+        end
+        
+        function trainPiNetwork(obj)
+            % Trains Pi net using data in observer buffers
+            
+            % Query training data from buffers
+            buffer = obj.PiX.getBuffer();
+            X = buffer(1:obj.total_coins+2,:);
+            Y = buffer(obj.total_coins+3,:);
+            Y = Y + 2; % [-1~20] encoded as [1~22] 
+            % Make Y a 1-hot encoding
+            num_actions = obj.total_coins+2;
+            I = eye(num_actions);
+            Y = I(Y,:);
+            % Train the net
+            X = X';
+            Y = Y';
+            [net,tr] = train(obj.piNet,X,Y);
+            obj.piNet = net;
+            
+        end
+        
     end
     
 end
