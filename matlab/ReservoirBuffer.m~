@@ -1,0 +1,42 @@
+classdef ReservoirBuffer < handle
+    %RESERVOIRBUFFER
+    %   Detailed explanation goes here
+    
+    properties
+        reservoir = [];
+        k = -1;
+        i = -1;
+    end
+    
+    methods
+        function obj = ReservoirBuffer(k,w)
+            % Inputs: k = length of buffer
+            %         w = width of buffer
+            obj.reservoir = zeros(k,w);
+            obj.i = 0;
+            obj.k = k;
+        end
+        function reservoir = returnReservoir(obj)
+            % Returns available reservoir
+            if(obj.i == 0)
+                reservoir = [];
+            else
+                reservoir = obj.reservoir(1:obj.i,:);
+            end
+        end
+        function push(obj,row)
+            % Adds row to reservoir
+            % Inputs: row = row of data to add
+            
+            ind = randi(obj.i);
+            % With prob k/i, replace 
+            if(ind<= obj.k)
+                obj.reservoir(ind,:) = row;
+            end
+            obj.i = obj.i + 1;
+        end
+            
+    end
+    
+end
+
