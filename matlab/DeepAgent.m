@@ -42,6 +42,9 @@ classdef DeepAgent < Player
         % QNet
         QX = []; % [b_log l_log a_log r_log bp_log lp_log] TODO: replace with circ buffer
         
+        % PERFORMANCE BUFFER
+        performance = []; % loss probability
+        
     end
     
     methods
@@ -217,10 +220,14 @@ classdef DeepAgent < Player
         
         function trainQNetwork(obj)
             % Trains Q net using data in observer buffers
+            % Adds performance measure to obj.performance
             
             % Query training data from buffers
             buffer = obj.QX.getBuffer();
             X = buffer(:,1:obj.total_coins + 3);
+            % Add performance to obj.performance
+            r = buffer(:,obj.total_coins+4);
+            obj.performance = [obj.performance, sum(r) / length(r)];
             % Generate targets using Bellman Equation
             Y = zeros(size(buffer,1),1);
             for i = 1:size(buffer,1)

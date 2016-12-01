@@ -40,7 +40,7 @@ QNet = initQNet(total_coins, 20);
 
 %% Initialize agents and play to train
 % one deep agent against 3 naive agents
-player1 = DeepAgent(obsNet, piNet, QNet);
+player1 = DeepAgent(obsNet, piNet, QNet, true);
 tic
 losses = [0,0,0,0];
 niter = 10000;
