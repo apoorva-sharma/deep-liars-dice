@@ -61,6 +61,6 @@ bar([0:20],net(training_examples(:,full_example_i))/...
     sum(net(training_examples(:,full_example_i))))
 hold on
 stem([0:20],0.2*training_labels(:,full_example_i));
-
+save(MKobstest);
 toc
 
