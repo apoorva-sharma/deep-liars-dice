@@ -31,6 +31,9 @@ training_labels = training_labels';
 obsNet = initObserverNet();
 [obsNet,tr] = train(obsNet,training_examples, training_labels);
 
+%% Load previously trained ObsNet
+load MKObsTest.mat
+
 %% Initialize Pi and Q nets without training
 piNet = initPiNet(total_coins, 20);
 QNet = initQNet(total_coins, 20);
