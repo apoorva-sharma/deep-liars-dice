@@ -7,9 +7,6 @@ function [ net ] = initQNet( total_coins, hiddenLayerSize )
     
     trainFcn = 'trainlm';  % Levenberg-Marquardt backpropagation.
     net = fitnet(hiddenLayerSize,trainFcn);
-    x = randi(10,[inputsize,1]);
-    y = randi(10,[outputsize,1]);
-    net = configure(net,x,y);
     net.layers{length(hiddenLayerSize)+1}.size = outputsize;
 
     net.divideFcn = 'dividerand';  % Divide data randomly

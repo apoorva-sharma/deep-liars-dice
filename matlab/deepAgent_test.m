@@ -43,9 +43,10 @@ losses = [0,0,0,0];
 niter = 10000;
 for iter = 1:niter
     playerlist = {player1 player2 player3 player4};
-    env = Environment(playerlist(randperm(4)), coins_per_player, true);
+    ordering = randperm(4);
+    env = Environment(playerlist(ordering), coins_per_player, true);
     loser = env.playGame();
-    losses(loser) = losses(loser) + 1;
+    losses(ordering(loser)) = losses(ordering(loser)) + 1;
 end
 
 bar(losses./sum(losses));

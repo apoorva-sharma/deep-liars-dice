@@ -6,9 +6,6 @@ function [ net ] = initPiNet( total_coins, hiddenLayerSize )
     outputsize = total_coins + 2; % one_hot over actions
     
     net = patternnet(hiddenLayerSize);
-    x = randi(10,[inputsize,1]);
-    y = randi(10,[outputsize,1]);
-    net = configure(net,x,y);
     net.layers{length(hiddenLayerSize)+1}.size = outputsize;
 
     net.divideFcn = 'dividerand';  % Divide data randomly

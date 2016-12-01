@@ -17,7 +17,7 @@ classdef DeepAgent < Player
         QNet = -1;
         
         gamesSinceLastTrain = -1;
-        gamesBetweenTraining = 100;
+        gamesBetweenTraining = 500;
         
         
         o_log = []; % log of all observations in one game
@@ -118,17 +118,20 @@ classdef DeepAgent < Player
             % Sample action at from policy
             if obj.useQ
                 actions = [-1 l+1:obj.total_coins];
-                qx = [repmat([b;l],[1 length(actions)]); actions];
-                qvals = obj.QNet(qx);
-                [~,besta_i] = max(qvals);
-                if rand > obj.epsilon
+                if (rand > obj.epsilon) && isconfigured(obj.QNet)
+                    qx = [repmat([b;l],[1 length(actions)]); actions];
+                    qvals = obj.QNet(qx);
+                    [~,besta_i] = max(qvals);
                     a = actions(besta_i);
                 else
                     a = randsample(actions,1);
                 end
             else
                 actions = [-1:obj.total_coins]';
-                probs = obj.piNet([b;l]) + eps*ones(size(actions));
+                probs = ones(size(actions));
+                if isconfigured(obj.piNet)
+                    probs = obj.piNet([b;l]) + eps*ones(size(actions));
+                end
                 % prune away illegal actions
                 validactions = actions([1,l+3:obj.total_coins]);
                 validprobs = probs([1,l+3:obj.total_coins]);
