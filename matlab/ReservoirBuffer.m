@@ -31,7 +31,7 @@ classdef ReservoirBuffer < handle
             % Inputs: rows = rows of data to add
             
             for row_i = 1:size(rows,1)
-                row = rows(row_i);
+                row = rows(row_i,:);
                 obj.i = obj.i + 1;
                 if(obj.i <= obj.k)
                     obj.reservoir(obj.i,:) = row;

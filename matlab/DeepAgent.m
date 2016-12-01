@@ -101,17 +101,19 @@ classdef DeepAgent < Player
         function next_bet = playTurn(obj,last_bets)
             % Inputs: last_bets = array of bets played by last n-1 players
             %           ordering: if obj is player 3 in a 5 player game
-            %            then last_bets = bets of [2,1,5,4]
+            %            then last_bets = bets of [2;1;5;4]
             % Output: next_bet played by obj
             
             % Based on Heinrich and Silver, 28 Jun 2016
             
             % define given variables
-            o = last_bets'; % observations are last_bets made by opponents
+            o = last_bets; % observations are last_bets made by opponents
             l = last_bets(1); % l is the bet immediately before this one.
-            
+            l(isnan(l)) = 0;
             % get belief from observer net
+            o(isnan(o)) = -10;
             b = obj.obsNet(o);
+            b = [zeros(obj.hand,1); b; zeros(obj.total_coins/obj.num_players - obj.hand,1)];
             
             % Sample action at from policy
             if obj.useQ
@@ -125,8 +127,8 @@ classdef DeepAgent < Player
                     a = randsample(actions,1);
                 end
             else
-                actions = [-1:obj.total_coins];
-                probs = PiNet([b;l]) + eps*ones(size(actions));
+                actions = [-1:obj.total_coins]';
+                probs = obj.piNet([b;l]) + eps*ones(size(actions));
                 % prune away illegal actions
                 validactions = actions([1,l+3:obj.total_coins]);
                 validprobs = probs([1,l+3:obj.total_coins]);
@@ -141,16 +143,16 @@ classdef DeepAgent < Player
             %  first fill in last row
             if ~isempty(obj.bp_log)
                 obj.r_log(end,:) = 0;
-                obj.bp_log(end,:) = b;
+                obj.bp_log(end,:) = b';
                 obj.lp_log(end,:) = l;
             end
             % now add a new row
-            obj.o_log = [obj.o_log; o];
-            obj.b_log = [obj.b_log; b];
+            obj.o_log = [obj.o_log; o'];
+            obj.b_log = [obj.b_log; b'];
             obj.l_log = [obj.l_log; l];
             obj.a_log = [obj.a_log; a];
             obj.r_log = [obj.r_log; NaN];
-            obj.bp_log = [obj.bp_log; NaN];
+            obj.bp_log = [obj.bp_log; NaN*ones(size(b'))];
             obj.lp_log = [obj.lp_log; NaN];
             obj.unknown_coins_log = [obj.unknown_coins_log; NaN];
         end
@@ -208,7 +210,7 @@ classdef DeepAgent < Player
             
             % Query training data from buffers
             buffer = obj.QX.getBuffer();
-            X = buffer(1:obj.total_coins + 3,:);
+            X = buffer(:,1:obj.total_coins + 3);
             % Generate targets using Bellman Equation
             Y = zeros(size(buffer,1),1);
             for i = 1:size(buffer,1)
@@ -222,12 +224,15 @@ classdef DeepAgent < Player
                     Y(i) = r;
                 else
                     % get Q(bp,lp,all a)
-                    num_actions = obj.total_coins + 2;
-                    net_inputs = ones(num_actions,obj.total_coins + 3);
-                    net_inputs(:,1:21) = bp;
-                    net_inputs(:,22) = lp;
-                    net_inputs(:,23) = (1:num_actions)';
-                    Qvals = obj.QNet(net_inputs');
+                    actions = [-1:obj.total_coins];
+                    qx = [repmat([bp,lp]',[1 length(actions)]); actions];
+                    Qvals = obj.QNet(qx);
+%                     num_actions = obj.total_coins + 2;
+%                     net_inputs = ones(num_actions,obj.total_coins + 3);
+%                     net_inputs(:,1:21) = repmat(bp;
+%                     net_inputs(:,22) = lp;
+%                     net_inputs(:,23) = (1:num_actions)';
+%                     Qvals = obj.QNet(net_inputs');
                     % Update Q(b,l,a) = r + max_ap Q_old(bp,lp,ap)
                     Y(i) = r + max(Qvals);
                 end
@@ -245,8 +250,8 @@ classdef DeepAgent < Player
             
             % Query training data from buffers
             buffer = obj.PiX.getBuffer();
-            X = buffer(1:obj.total_coins+2,:);
-            Y = buffer(obj.total_coins+2,:);
+            X = buffer(:,1:obj.total_coins+2);
+            Y = buffer(:,obj.total_coins+3);
             Y = Y + 2; % [-1~20] encoded as [1~22] 
             % Make Y a 1-hot encoding
             num_actions = obj.total_coins+2;

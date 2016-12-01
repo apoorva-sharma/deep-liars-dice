@@ -32,7 +32,7 @@ obsNet = initObserverNet();
 [obsNet,tr] = train(obsNet,training_examples, training_labels);
 
 %% Initialize Pi and Q nets without training
-piNet = initPiNet();
+piNet = initPiNet(total_coins, 20);
 QNet = initQNet(total_coins, 20);
 
 %% Initialize agents and play
