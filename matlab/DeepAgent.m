@@ -15,6 +15,11 @@ classdef DeepAgent < Player
         obsNet = -1;
         piNet = -1;
         QNet = -1;
+        
+        gamesSinceLastTrain = -1;
+        gamesBetweenTraining = 100;
+        
+        
         o_log = []; % log of all observations in one game
         b_log = []; % log of all beliefs in one game
         l_log = []; % log of all last_bets '' 
@@ -52,6 +57,9 @@ classdef DeepAgent < Player
             obj.piNet = piNet;
             obj.QNet = QNet;
             
+            obj.gamesSinceLastTrain = 0;
+
+            
             % Initialize observer buffers
             obs_buffer_size = 100000;
             obj.obsX = CircBuffer([obs_buffer_size, 3]);
@@ -76,7 +84,7 @@ classdef DeepAgent < Player
             obj.num_players = num_players;
             
             % determine whether we use esp-greedy Q or pi for this game
-            obj.useQ = rand <= eta;
+            obj.useQ = rand <= obj.eta;
             
             % reset the current game logs
             obj.o_log = []; % log of all observations in one game
@@ -106,10 +114,10 @@ classdef DeepAgent < Player
             b = obj.obsNet(o);
             
             % Sample action at from policy
-            if useQ
+            if obj.useQ
                 actions = [-1 l+1:obj.total_coins];
                 qx = [repmat([b;l],[1 length(actions)]); actions];
-                qvals = QNet(qx);
+                qvals = obj.QNet(qx);
                 [~,besta_i] = max(qvals);
                 if rand > eps
                     a = actions(besta_i);
@@ -158,13 +166,22 @@ classdef DeepAgent < Player
             obj.obsY.push(obj.unknown_coins_log);
 
             % PiNet
-            if useQ
+            if obj.useQ
                 obj.PiX.push([obj.b_log obj.l_log obj.a_log]);
             end
 
             % QNet
             obj.QX.push([obj.b_log obj.l_log obj.a_log obj.r_log...
                                 obj.bp_log obj.lp_log]);
+                            
+            % decide whether to train
+            obj.gamesSinceLastTrain = obj.gamesSinceLastTrain + 1;
+            if obj.gamesSinceLastTrain >= obj.gamesBetweenTraining
+                obj.trainObserverNetwork();
+                obj.trainPiNetwork();
+                obj.trainQNetwork();
+                obj.gamesSinceLastTrain = 0;
+            end
         end
         
         function trainObserverNetwork(obj)
