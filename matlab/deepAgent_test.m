@@ -60,8 +60,10 @@ player1 = DeepAgent(pObsNet, pPiNet, pQNet, obsXbuf, obsYbuf, PiXbuf, QXbuf);
 tic
 player1.training = true;
 losses = [0,0,0,0];
+h = waitbar(0,'Please wait...');
 niter = 50000;
 for iter = 1:niter
+    waitbar(iter/niter);
     playerlist = {player1 player2 player3 player4};
     ordering = randperm(4);
     env = Environment(playerlist(ordering), coins_per_player, true);
