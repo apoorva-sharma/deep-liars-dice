@@ -38,7 +38,22 @@ obsNet = net;
 %% Initialize Pi and Q nets without training
 piNet = initPiNet(total_coins, 20);
 QNet = initQNet(total_coins, 20);
-player1 = DeepAgent(obsNet, piNet, QNet);
+
+pObsNet = PersistentNet(obsNet);
+pPiNet = PersistentNet(piNet);
+pQNet = PersistentNet(QNet);
+
+obs_buffer_size = 100000;
+obsXbuf = CircBuffer([obs_buffer_size, 3]);
+obsYbuf = CircBuffer([obs_buffer_size, 1]);
+
+pi_buffer_size = 100000;
+PiXbuf = ReservoirBuffer(pi_buffer_size,23);
+
+Q_buffer_size = 100000;
+QXbuf = CircBuffer([Q_buffer_size, 46]);
+
+player1 = DeepAgent(pObsNet, pPiNet, pQNet, obsXbuf, obsYbuf, PiXbuf, QXbuf);
 
 %% Initialize agents and play to train
 % one deep agent against 3 naive agents

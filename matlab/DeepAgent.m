@@ -48,7 +48,7 @@ classdef DeepAgent < Player
     end
     
     methods
-        function obj = DeepAgent(obsNet, piNet, QNet)
+        function obj = DeepAgent(obsNet, piNet, QNet, obsXbuf, obsYbuf, PiXbuf, QXbuf)
             % Constructor for a DeepAgent
             % Inputs: obsNet: neural network mapping last_bets to
             %                 distribution on unknown_heads
@@ -66,17 +66,14 @@ classdef DeepAgent < Player
             obj.gamesSinceLastTrain = 0;
             
             % Initialize observer buffers
-            obs_buffer_size = 100000;
-            obj.obsX = CircBuffer([obs_buffer_size, 3]);
-            obj.obsY = CircBuffer([obs_buffer_size, 1]);
+            obj.obsX = obsXbuf;
+            obj.obsY = obsYbuf;
             
             % Initialize pi buffers
-            pi_buffer_size = 100000;
-            obj.PiX = ReservoirBuffer(pi_buffer_size,23);
+            obj.PiX = PiXbuf;
             
             % Initialize Q buffers
-            Q_buffer_size = 100000;
-            obj.QX = CircBuffer([Q_buffer_size, 46]);
+            obj.QX = QXbuf;
             
         end
         function initGame(obj,hand, total_coins, num_players)
@@ -117,15 +114,15 @@ classdef DeepAgent < Player
             l(isnan(l)) = 0;
             % get belief from observer net
             o(isnan(o)) = -10;
-            b = obj.obsNet(o);
+            b = obj.obsNet.eval(o);
             b = [zeros(obj.hand,1); b; zeros(obj.total_coins/obj.num_players - obj.hand,1)];
             
             % Sample action at from policy
             if obj.useQ
                 actions = [-1 l+1:obj.total_coins];
-                if (rand > obj.epsilon) && isconfigured(obj.QNet)
+                if (rand > obj.epsilon) && isconfigured(obj.QNet.net)
                     qx = [repmat([b;l],[1 length(actions)]); actions];
-                    qvals = obj.QNet(qx);
+                    qvals = obj.QNet.eval(qx);
                     [~,besta_i] = max(qvals);
                     a = actions(besta_i);
                 else
@@ -134,8 +131,8 @@ classdef DeepAgent < Player
             else
                 actions = [-1:obj.total_coins]';
                 probs = ones(size(actions));
-                if isconfigured(obj.piNet)
-                    probs = obj.piNet([b;l]) + eps*ones(size(actions));
+                if isconfigured(obj.piNet.net)
+                    probs = obj.piNet.eval([b;l]) + eps*ones(size(actions));
                 end
                 % prune away illegal actions
                 validactions = actions([1,l+3:obj.total_coins]);
@@ -213,9 +210,7 @@ classdef DeepAgent < Player
             % Train the net
             X = X';
             Y = Y';
-            [net,tr] = train(obj.obsNet,X,Y);
-            obj.obsNet = net;
-            
+            obj.obsNet.train(X,Y);            
         end
         
         function trainQNetwork(obj)
@@ -243,8 +238,8 @@ classdef DeepAgent < Player
                     % get Q(bp,lp,all a)
                     actions = [-1:obj.total_coins];
                     qx = [repmat([bp,lp]',[1 length(actions)]); actions];
-                    if(isconfigured(obj.QNet))
-                        Qvals = obj.QNet(qx);
+                    if(isconfigured(obj.QNet.net))
+                        Qvals = obj.QNet.eval(qx);
                     else Qvals = 0;
                     end
 %                     num_actions = obj.total_coins + 2;
@@ -261,8 +256,7 @@ classdef DeepAgent < Player
             % Train the net
             X = X';
             Y = Y';
-            [net,tr] = train(obj.QNet,X,Y);
-            obj.QNet = net;
+            obj.QNet.train(X,Y);
         end
         
         function trainPiNetwork(obj)
@@ -280,9 +274,7 @@ classdef DeepAgent < Player
             % Train the net
             X = X';
             Y = Y';
-            [net,tr] = train(obj.piNet,X,Y);
-            obj.piNet = net;
-            
+            obj.piNet.train(X,Y);
         end
         
     end
