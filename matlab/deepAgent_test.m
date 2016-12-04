@@ -57,10 +57,10 @@ player1 = DeepAgent(pObsNet, pPiNet, pQNet, obsXbuf, obsYbuf, PiXbuf, QXbuf);
 
 %% Initialize agents and play to train
 % one deep agent against 3 naive agents
-
+tic
 player1.training = true;
 losses = [0,0,0,0];
-niter = 10000;
+niter = 50000;
 for iter = 1:niter
     playerlist = {player1 player2 player3 player4};
     ordering = randperm(4);
@@ -68,7 +68,7 @@ for iter = 1:niter
     loser = env.playGame();
     losses(ordering(loser)) = losses(ordering(loser)) + 1;
 end
-
+toc
 
 %% Now, play to WIN
 player1.training = false;
@@ -84,3 +84,17 @@ end
 
 bar(losses./sum(losses));
 title('Lose rate of each player');
+
+%% Initialize agents and play to train
+% one deep agent against 3 naive agents
+
+player1.training = true;
+losses = [0,0,0,0];
+niter = 10000;
+for iter = 1:niter
+    playerlist = {player1 player2 player3 player4};
+    ordering = randperm(4);
+    env = Environment(playerlist(ordering), coins_per_player, true);
+    loser = env.playGame();
+    losses(ordering(loser)) = losses(ordering(loser)) + 1;
+end
