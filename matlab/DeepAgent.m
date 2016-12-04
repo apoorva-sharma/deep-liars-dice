@@ -44,6 +44,7 @@ classdef DeepAgent < Player
         
         % PERFORMANCE BUFFER
         performance = []; % loss probability
+        sessionPerformance = []; % performance of this session
         
     end
     
@@ -169,6 +170,7 @@ classdef DeepAgent < Player
             % Fill in missing items in logs
             obj.r_log(end,:) = reward;
             obj.unknown_coins_log(:) = total_heads - hand;
+            obj.sessionPerformance = [obj.sessionPerformance, reward];
             
             % Add logs to replay memories
             % ObsNet
@@ -221,8 +223,9 @@ classdef DeepAgent < Player
             buffer = obj.QX.getBuffer();
             X = buffer(:,1:obj.total_coins + 3);
             % Add performance to obj.performance
-            r = buffer(:,obj.total_coins+4);
-            obj.performance = [obj.performance, sum(r) / length(r)];
+            obj.performance = [obj.performance,...
+                sum(obj.sessionPerformance)/length(obj.sessionPerformance)];
+            obj.sessionPerformance = [];
             % Generate targets using Bellman Equation
             Y = zeros(size(buffer,1),1);
             for i = 1:size(buffer,1)
