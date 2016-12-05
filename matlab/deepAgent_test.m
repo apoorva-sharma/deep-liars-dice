@@ -100,6 +100,16 @@ player3 = DeepAgent(pObsNet, pPiNet, pQNet, obsXbuf, obsYbuf, PiXbuf, QXbuf);
 player4 = DeepAgent(pObsNet, pPiNet, pQNet, obsXbuf, obsYbuf, PiXbuf, QXbuf);
 
 
+%% Initialize pre-trained against Naive for self play
+player1 = DeepAgent(player1.obsNet, player1.piNet, player1.QNet,...
+    obsXbuf, obsYbuf, PiXbuf, QXbuf);
+player2 = DeepAgent(player1.obsNet, player1.piNet, player1.QNet,...
+    obsXbuf, obsYbuf, PiXbuf, QXbuf);
+player3 = DeepAgent(player1.obsNet, player1.piNet, player1.QNet,...
+    obsXbuf, obsYbuf, PiXbuf, QXbuf);
+player4 = DeepAgent(player1.obsNet, player1.piNet, player1.QNet,...
+    obsXbuf, obsYbuf, PiXbuf, QXbuf);
+
 %% play to train
 
 player1.training = true;
