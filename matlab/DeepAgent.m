@@ -240,7 +240,7 @@ classdef DeepAgent < Player
             qx = repmat(inps_non_nan',[1,length(actions)]);
             acts = zeros(1,size(qx,2));
             for i = 1:length(actions)
-                acts(num_samps*(i-1) + 1 : num_samps*i) = i;
+                acts(num_samps*(i-1) + 1 : num_samps*i) = actions(i);
             end
             qx = [qx;acts];
             % Run through NN
@@ -250,7 +250,7 @@ classdef DeepAgent < Player
                 Qvals = zeros(1,size(qx,2));
             end
             % Reshape and pick out max_a Q([bp,lp,a])
-            Qvals = reshape(Qvals',[],length(actions));
+            Qvals = reshape(Qvals,length(actions),[])';
             max_Qvals = max(Qvals,[],2);
             % Fill results into Y in non-nan spots
             Y = buffer(:,obj.total_coins+4);
