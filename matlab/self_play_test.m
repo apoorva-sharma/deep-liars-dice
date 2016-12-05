@@ -14,8 +14,8 @@ pQNet = PersistentNet(QNet);
 
 %% Initialize Memories
 obs_buffer_size = 5000;
-obsXbuf = ReservoirBuffer([obs_buffer_size, 3]);
-obsYbuf = ReservoirBuffer([obs_buffer_size, 1]);
+obsXbuf = ReservoirBuffer(obs_buffer_size, 3);
+obsYbuf = ReservoirBuffer(obs_buffer_size, 1);
 
 pi_buffer_size = 5000;
 PiXbuf = ReservoirBuffer(pi_buffer_size,23);
@@ -37,7 +37,7 @@ player3.training = true;
 player4.training = true;
 playerlist = {player1 player2 player3 player4};
 
-niter = 50000;
+niter = 10000;
 h = waitbar(0,'Please wait...');
 for iter = 1:niter
     waitbar(iter/niter);
