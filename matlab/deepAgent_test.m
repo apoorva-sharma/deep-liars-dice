@@ -131,7 +131,7 @@ end
 bar(losses./sum(losses));
 title('Loss rate of each player');
 
-%% play to WIN against each other
+%% play to WIN against naive agents
 player1.training = false;
 
 naive1 = NaiveAgent(0.5);
