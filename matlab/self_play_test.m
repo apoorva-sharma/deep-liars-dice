@@ -55,7 +55,7 @@ naive2 = NaiveAgent(0.5);
 naive3 = NaiveAgent(0.5);
 
 playerlist = {player1 naive1 naive2 naive3};
-% losses = [0,0,0,0];
+losses = [0,0,0,0];
 niter = 1000;
 for iter = 1:niter
     ordering = randperm(4);
