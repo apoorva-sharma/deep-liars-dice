@@ -226,35 +226,35 @@ classdef DeepAgent < Player
             obj.performance = [obj.performance,...
                 sum(obj.sessionPerformance)/length(obj.sessionPerformance)];
             obj.sessionPerformance = [];
-            % Generate targets using Bellman Equation
-            Y = zeros(size(buffer,1),1);
-            for i = 1:size(buffer,1)
-%                 b = buffer(i,1:obj.total_coins+1);
-%                 l = buffer(i,obj.total_coins+2);
-%                 a = buffer(i,obj.total_coins+3);
-                r = buffer(i,obj.total_coins+4);
-                bp = buffer(i,obj.total_coins+5:2*obj.total_coins+5);
-                lp = buffer(i,2*obj.total_coins+6);
-                if(isnan(bp)) % terminal state
-                    Y(i) = r;
-                else
-                    % get Q(bp,lp,all a)
-                    actions = [-1:obj.total_coins];
-                    qx = [repmat([bp,lp]',[1 length(actions)]); actions];
-                    if(isconfigured(obj.QNet.net))
-                        Qvals = obj.QNet.eval(qx);
-                    else Qvals = 0;
-                    end
-%                     num_actions = obj.total_coins + 2;
-%                     net_inputs = ones(num_actions,obj.total_coins + 3);
-%                     net_inputs(:,1:21) = repmat(bp;
-%                     net_inputs(:,22) = lp;
-%                     net_inputs(:,23) = (1:num_actions)';
-%                     Qvals = obj.QNet(net_inputs');
-                    % Update Q(b,l,a) = r + max_ap Q_old(bp,lp,ap)
-                    Y(i) = r + max(Qvals);
-                end
+            
+            % Generate targets using Bellman Equation:
+            
+            % pick out [bp,lp] which aren't NaN
+            non_nan_bps = ~isnan(buffer(:,obj.total_coins+5));
+            inps_non_nan = buffer(non_nan_bps,...
+                obj.total_coins+5:2*obj.total_coins+6);
+            % Generate mx of [bp,lp,a] for all possible a
+            %  as inputs to the NN
+            num_samps = size(inps_non_nan,1);
+            actions = [-1:obj.total_coins];
+            qx = repmat(inps_non_nan',[1,length(actions)]);
+            acts = zeros(1,size(qx,2));
+            for i = 1:length(actions)
+                acts(num_samps*(i-1) + 1 : num_samps*i) = i;
             end
+            qx = [qx;acts];
+            % Run through NN
+            if(isconfigured(obj.QNet.net))
+                Qvals = obj.QNet.eval(qx);
+            else
+                Qvals = zeros(1,size(qx,2));
+            end
+            % Reshape and pick out max_a Q([bp,lp,a])
+            Qvals = reshape(Qvals',[],length(actions));
+            max_Qvals = max(Qvals,[],2);
+            % Fill results into Y in non-nan spots
+            Y = buffer(:,obj.total_coins+4);
+            Y(non_nan_bps) = Y(non_nan_bps) + max_Qvals;
             
             % Train the net
             X = X';
