@@ -53,9 +53,10 @@ PiXbuf = ReservoirBuffer(pi_buffer_size,23);
 Q_buffer_size = 100000;
 QXbuf = CircBuffer([Q_buffer_size, 46]);
 
+%% Initialize agents
 player1 = DeepAgent(pObsNet, pPiNet, pQNet, obsXbuf, obsYbuf, PiXbuf, QXbuf);
 
-%% Initialize agents and play to train
+%%
 % one deep agent against 3 naive agents
 tic
 player1.training = true;
@@ -83,18 +84,67 @@ for iter = 1:niter
 end
 
 bar(losses./sum(losses));
-title('Lose rate of each player');
+title('Loss rate of each player');
 
-%% Initialize agents and play to train
-% one deep agent against 3 naive agents
+%% Initialize agents for self play
+% All the agents use the same brain
+player1 = DeepAgent(pObsNet, pPiNet, pQNet, obsXbuf, obsYbuf, PiXbuf, QXbuf);
+player2 = DeepAgent(pObsNet, pPiNet, pQNet, obsXbuf, obsYbuf, PiXbuf, QXbuf);
+player3 = DeepAgent(pObsNet, pPiNet, pQNet, obsXbuf, obsYbuf, PiXbuf, QXbuf);
+player4 = DeepAgent(pObsNet, pPiNet, pQNet, obsXbuf, obsYbuf, PiXbuf, QXbuf);
+
+
+%% play to train
 
 player1.training = true;
-losses = [0,0,0,0];
-niter = 10000;
+player2.training = true;
+player3.training = true;
+player4.training = true;
+playerlist = {player1 player2 player3 player4};
+
+
+niter = 50000;
 for iter = 1:niter
-    playerlist = {player1 player2 player3 player4};
+    ordering = randperm(4);
+    env = Environment(playerlist(ordering), coins_per_player, true);
+    env.playGame();
+end
+
+%% play to WIN against each other
+player1.training = false;
+player2.training = false;
+player3.training = false;
+player4.training = false;
+
+playerlist = {player1 player2 player3 player4};
+losses = [0,0,0,0];
+niter = 5000;
+for iter = 1:niter
     ordering = randperm(4);
     env = Environment(playerlist(ordering), coins_per_player, true);
     loser = env.playGame();
     losses(ordering(loser)) = losses(ordering(loser)) + 1;
 end
+
+bar(losses./sum(losses));
+title('Loss rate of each player');
+
+%% play to WIN against each other
+player1.training = false;
+
+naive1 = NaiveAgent(0.5);
+naive2 = NaiveAgent(0.5);
+naive3 = NaiveAgent(0.5);
+
+playerlist = {player1 naive1 naive2 naive3};
+losses = [0,0,0,0];
+niter = 5000;
+for iter = 1:niter
+    ordering = randperm(4);
+    env = Environment(playerlist(ordering), coins_per_player, true);
+    loser = env.playGame();
+    losses(ordering(loser)) = losses(ordering(loser)) + 1;
+end
+
+bar(losses./sum(losses));
+title('Loss rate of each player');
