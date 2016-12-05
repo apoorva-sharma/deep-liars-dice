@@ -8,7 +8,7 @@ classdef PersistentNet < handle
             obj.net = net;
         end
         function train(obj,x,y)
-            obj.net = train(obj.net,x,y,'UseGPU','yes');
+            obj.net = train(obj.net,x,y);
         end
         
         function [y] = eval(obj,x)

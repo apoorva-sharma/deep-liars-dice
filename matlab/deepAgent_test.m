@@ -5,9 +5,9 @@
 % player3 = NaiveAgent(0.5);
 % player4 = NaiveAgent(0.5);
 % 
-% coins_per_player = 5;
-% total_coins = coins_per_player*4;
-% oneHotEye = eye(total_coins+1-coins_per_player);
+coins_per_player = 5;
+total_coins = coins_per_player*4;
+oneHotEye = eye(total_coins+1-coins_per_player);
 % 
 % training_examples = [];
 % training_labels = [];
@@ -32,8 +32,11 @@
 % [obsNet,tr] = train(obsNet,training_examples, training_labels);
 
 %% Load previously trained ObsNet
-load MKObsTest.mat
-obsNet = net;
+% load MKObsTest.mat
+% obsNet = net;
+
+%% Initialize fresh obsnet
+obsNet = initObserverNet();
 
 %% Initialize Pi and Q nets without training
 piNet = initPiNet(total_coins, 20);
@@ -71,6 +74,7 @@ for iter = 1:niter
     loser = env.playGame();
     losses(ordering(loser)) = losses(ordering(loser)) + 1;
 end
+close(h)
 toc
 
 %% Now, play to WIN
@@ -106,11 +110,14 @@ playerlist = {player1 player2 player3 player4};
 
 
 niter = 50000;
+h = waitbar(0,'Please wait...');
 for iter = 1:niter
+    waitbar(iter/niter);
     ordering = randperm(4);
     env = Environment(playerlist(ordering), coins_per_player, true);
     env.playGame();
 end
+close(h)
 
 %% play to WIN against each other
 player1.training = false;
@@ -148,5 +155,19 @@ for iter = 1:niter
     losses(ordering(loser)) = losses(ordering(loser)) + 1;
 end
 
+figure(2)
 bar(losses./sum(losses));
 title('Loss rate of each player');
+
+
+%% play against a human
+player1.training = false;
+player2.training = false;
+player3.training = false;
+human1 = HumanAgent('Mark');
+
+playerlist = {human1, player1, player2, player3};
+ordering = randperm(4)
+env = Environment(playerlist(ordering), coins_per_player, false);
+loser = env.playGame();
+

@@ -16,7 +16,5 @@ function [ net ] = initQNet( total_coins, hiddenLayerSize )
     net.divideParam.testRatio = 15/100;
 
     net.performFcn = 'crossentropy';  % Cross-Entropy
-
-
 end
 

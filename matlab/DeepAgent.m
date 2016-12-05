@@ -115,7 +115,13 @@ classdef DeepAgent < Player
             l(isnan(l)) = 0;
             % get belief from observer net
             o(isnan(o)) = -10;
-            b = obj.obsNet.eval(o);
+            if isconfigured(obj.obsNet.net)
+                b = obj.obsNet.eval(o);
+            else
+                % use a uniform belief
+                b = ones(obj.total_coins - obj.total_coins/obj.num_players + 1,1);
+                b = b/sum(b);
+            end
             b = [zeros(obj.hand,1); b; zeros(obj.total_coins/obj.num_players - obj.hand,1)];
             
             % Sample action at from policy
