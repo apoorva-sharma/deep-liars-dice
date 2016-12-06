@@ -17,7 +17,7 @@ obs_buffer_size = 5000;
 obsXbuf = ReservoirBuffer(obs_buffer_size, 3);
 obsYbuf = ReservoirBuffer(obs_buffer_size, 1);
 
-pi_buffer_size = 5000;
+pi_buffer_size = 10000;
 PiXbuf = ReservoirBuffer(pi_buffer_size,23);
 
 Q_buffer_size = 2000;
@@ -37,6 +37,7 @@ player3.training = true;
 player4.training = true;
 playerlist = {player1 player2 player3 player4};
 
+tic
 niter = 10000;
 h = waitbar(0,'Please wait...');
 for iter = 1:niter
@@ -46,6 +47,7 @@ for iter = 1:niter
     env.playGame();
 end
 close(h)
+toc
 
 %% Play to WIN against Naive Agents
 player1.training = false;
@@ -68,6 +70,7 @@ end
 figure(2)
 pvals = linspace(0,0.5,500);
 alpha = losses;
+
 beta = sum(losses) - losses;
 lossDist1 = betapdf(pvals,alpha(1),beta(1));
 lossDist2 = betapdf(pvals,alpha(2),beta(2));
