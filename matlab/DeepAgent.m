@@ -6,6 +6,7 @@ classdef DeepAgent < Player
         hand = -1;
         total_coins = -1;
         num_players = -1;
+        coins_per_player = -1;
         
         eta = 0.1; % anticipatory parameter
         epsilon = 0.2; % epsilon for epsilon-greedy Q
@@ -46,6 +47,15 @@ classdef DeepAgent < Player
         performance = []; % loss probability
         sessionPerformance = []; % performance of this session
         
+        % QVALUE PRECALCULATION
+        % We will pass in all possible last_bets to ObsNet to pre-calculate
+        %  the belief states, and pass those in with all possible last_bet
+        %  to QNet pre-calculate Qvals as a lookup. This is for speedup
+        possible_lastbets = [];
+        all_lastbets = [];
+        allQvals = NaN;
+        allPis = NaN;
+        allBeliefsHands = NaN;
     end
     
     methods
@@ -76,7 +86,24 @@ classdef DeepAgent < Player
             % Initialize Q buffers
             obj.QX = QXbuf;
             
+            % Initialize all_lastbets
+            obj.possible_lastbets = [-10,0:20];
+            obj.all_lastbets = zeros(length(obj.possible_lastbets)^3,3);
+            itr = 1;
+            for i = 1:length(obj.possible_lastbets)
+                for j = 1:length(obj.possible_lastbets)
+                    for k = 1:length(obj.possible_lastbets)
+                        obj.all_lastbets(itr,:) = ...
+                            [obj.possible_lastbets(i),...
+                            obj.possible_lastbets(j),...
+                            obj.possible_lastbets(k)];
+                        itr = itr+1;
+                    end
+                end
+            end
         end
+            
+        
         function initGame(obj,hand, total_coins, num_players)
             % Inputs: hand = num heads in this agent's hand
             %         total_coins = total coins in game
@@ -85,6 +112,7 @@ classdef DeepAgent < Player
             obj.hand = hand;
             obj.total_coins = total_coins;
             obj.num_players = num_players;
+            obj.coins_per_player = total_coins/num_players;
             
             % determine whether we use esp-greedy Q or pi for this game
             obj.useQ = (rand <= obj.eta) && obj.training;
@@ -116,20 +144,32 @@ classdef DeepAgent < Player
             % get belief from observer net
             o(isnan(o)) = -10;
             if isconfigured(obj.obsNet.net)
-                b = obj.obsNet.eval(o);
+%                 b = obj.obsNet.eval(o);
+                ind = obj.bet_action2ind(o,-1,0);
+                if(~isconfigured(obj.QNet.net))
+                    b = obj.obsNet.eval(o);
+                    b = [zeros(obj.hand,1); b; zeros(obj.total_coins/obj.num_players - obj.hand,1)];
+                else
+                    b = obj.allBeliefsHands(ind,:);
+                end
             else
                 % use a uniform belief
                 b = ones(obj.total_coins - obj.total_coins/obj.num_players + 1,1);
                 b = b/sum(b);
+                b = [zeros(obj.hand,1); b; zeros(obj.total_coins/obj.num_players - obj.hand,1)];
             end
-            b = [zeros(obj.hand,1); b; zeros(obj.total_coins/obj.num_players - obj.hand,1)];
+            
             
             % Sample action at from policy
             if obj.useQ
                 actions = [-1 l+1:obj.total_coins];
                 if (rand > obj.epsilon) && isconfigured(obj.QNet.net)
-                    qx = [repmat([b;l],[1 length(actions)]); actions];
-                    qvals = obj.QNet.eval(qx);
+%                     qx = [repmat([b;l],[1 length(actions)]); actions];
+%                     qvals = obj.QNet.eval(qx);
+                    
+                    qvals = obj.allQvals(obj.bet_action2ind(...
+                        repmat(o,[1 length(actions)]),...
+                        actions,obj.hand*ones(size(actions))));
                     [~,besta_i] = max(qvals);
                     a = actions(besta_i);
                 else
@@ -170,6 +210,7 @@ classdef DeepAgent < Player
         end
         
         function [] = debrief(obj,reward,total_heads,hand)
+            obj.gamesSinceLastTrain = obj.gamesSinceLastTrain + 1;
             if isempty(obj.o_log)
                 return % no need to do anything if we didn't really play
             end
@@ -193,12 +234,36 @@ classdef DeepAgent < Player
                                 obj.bp_log obj.lp_log]);
                             
             % decide whether to train
-            obj.gamesSinceLastTrain = obj.gamesSinceLastTrain + 1;
             if obj.gamesSinceLastTrain >= obj.gamesBetweenTraining
                 if(obj.training)
                     obj.trainObserverNetwork();
                     obj.trainQNetwork();
                     obj.trainPiNetwork();
+                    % Precompute beliefs
+                    all_beliefs =...
+                        (obj.obsNet.eval(obj.all_lastbets'))';
+                    % pad beliefs with all possible hands
+                    [m,n] = size(all_beliefs);
+                    all_beliefs_hands = zeros(6*m,21);
+                    for i = 1:6
+                        all_beliefs_hands((i-1)*m+1:i*m,i:n+i-1)...
+                            = all_beliefs;
+                    end
+                    % append last_bet
+                    last_bet = obj.all_lastbets(:,1);
+                    all_beliefs_hands = [all_beliefs_hands, repmat(last_bet,6,1)];
+                    obj.allBeliefsHands = all_beliefs_hands;
+                    % Precompute pis
+                    obj.allPis = (obj.piNet.eval(all_beliefs_hands'))';
+                    % append on all possible actions
+                    actions = [-1,0:obj.total_coins];
+                    [m,n] = size(all_beliefs_hands);
+                    all_q_inps = zeros(m*length(actions),n+1);
+                    for i = 1:length(actions)
+                        all_q_inps((i-1)*m+1:i*m,:) = [all_beliefs_hands,...
+                            ones(m,1)*actions(i)];
+                    end
+                    obj.allQvals = obj.QNet.eval(all_q_inps');
                 end
                 obj.gamesSinceLastTrain = 0;
             end
@@ -291,7 +356,11 @@ classdef DeepAgent < Player
             persistent a2sub
             bet2sub = @(bet) (bet == -10) + (bet ~= -10).*(bet+2);
             a2sub = @(a) a + 2;
-            ind = sub2ind([obj.total_coins+1, obj.total_coins+1, obj.total_coins+1, obj.coins_per_player obj.total_coins+1],bet2sub(b(1)),bet2sub(b(2)),bet2sub(b(3)),h+1,a2sub(a));
+            if(size(b,2) > 1)
+                ind = sub2ind(([obj.total_coins+2, obj.total_coins+2, obj.total_coins+2, obj.coins_per_player obj.total_coins+2]),bet2sub(b(3,:)),bet2sub(b(2,:)),bet2sub(b(1,:)),h+1,a2sub(a));
+            else
+                ind = sub2ind(([obj.total_coins+2, obj.total_coins+2, obj.total_coins+2, obj.coins_per_player obj.total_coins+2]),bet2sub(b(3)),bet2sub(b(2)),bet2sub(b(1)),h+1,a2sub(a));
+            end
         end
     end
     
