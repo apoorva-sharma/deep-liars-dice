@@ -38,7 +38,7 @@ player4.training = true;
 playerlist = {player1 player2 player3 player4};
 
 tic
-niter = 10000;
+niter = 100000;
 h = waitbar(0,'Please wait...');
 for iter = 1:niter
     waitbar(iter/niter);
@@ -58,16 +58,19 @@ naive3 = NaiveAgent(0.5);
 
 playerlist = {player1 naive1 naive2 naive3};
 losses = [0,0,0,0];
-niter = 1000;
+niter = 5000;
+h = waitbar(0,'Please wait...');
 for iter = 1:niter
+    waitbar(iter/niter);
     ordering = randperm(4);
     env = Environment(playerlist(ordering), coins_per_player, true);
     loser = env.playGame();
     losses(ordering(loser)) = losses(ordering(loser)) + 1;
 end
+close(h)
 
 %%
-figure(2)
+figure()
 pvals = linspace(0,0.5,500);
 alpha = losses;
 
