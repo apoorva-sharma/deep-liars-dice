@@ -286,6 +286,13 @@ classdef DeepAgent < Player
             obj.piNet.train(X,Y);
         end
         
+        function [ind] = bet_action2ind(obj,b,a)
+            persistent bet2sub
+            persistent a2sub
+            bet2sub = @(bet) (bet == -10) + (bet ~= -10).*(bet+2);
+            a2sub = @(a) a + 2;
+            ind = sub2ind([obj.total_coins+1, obj.total_coins+1, obj.total_coins+1, obj.total_coins+1],bet2sub(b(1)),bet2sub(b(2)),bet2sub(b(3)),a2sub(a));
+        end
     end
     
 end
