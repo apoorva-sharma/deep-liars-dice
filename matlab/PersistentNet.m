@@ -1,6 +1,7 @@
 classdef PersistentNet < handle
     properties
         net = -1;
+        precomputedResponses = NaN;
     end
     
     methods

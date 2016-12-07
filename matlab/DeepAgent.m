@@ -53,9 +53,6 @@ classdef DeepAgent < Player
         %  to QNet pre-calculate Qvals as a lookup. This is for speedup
         possible_lastbets = [];
         all_lastbets = [];
-        allQvals = NaN;
-        allPis = NaN;
-        allBeliefsHands = NaN;
     end
     
     methods
@@ -145,12 +142,12 @@ classdef DeepAgent < Player
             o(isnan(o)) = -10;
             if isconfigured(obj.obsNet.net)
 %                 b = obj.obsNet.eval(o);
-                ind = obj.bet_action2ind(o,-1,0);
-                if(~isconfigured(obj.QNet.net))
+                ind = obj.bet_action2ind(o,-1,obj.hand);
+                if(isnan(obj.obsNet.precomputedResponses))
                     b = obj.obsNet.eval(o);
                     b = [zeros(obj.hand,1); b; zeros(obj.total_coins/obj.num_players - obj.hand,1)];
                 else
-                    b = obj.allBeliefsHands(ind,:);
+                    b = obj.obsNet.precomputedResponses(ind,:)';
                 end
             else
                 % use a uniform belief
@@ -167,7 +164,7 @@ classdef DeepAgent < Player
 %                     qx = [repmat([b;l],[1 length(actions)]); actions];
 %                     qvals = obj.QNet.eval(qx);
                     
-                    qvals = obj.allQvals(obj.bet_action2ind(...
+                    qvals = obj.QNet.precomputedResponses(obj.bet_action2ind(...
                         repmat(o,[1 length(actions)]),...
                         actions,obj.hand*ones(size(actions))));
                     [~,besta_i] = max(qvals);
@@ -179,7 +176,9 @@ classdef DeepAgent < Player
                 actions = [-1:obj.total_coins]';
                 probs = ones(size(actions));
                 if isconfigured(obj.piNet.net)
-                    probs = obj.piNet.eval([b;l]) + eps*ones(size(actions));
+                    ind = obj.bet_action2ind(o,-1,obj.hand);
+%                     probs = obj.piNet.eval([b;l]) + eps*ones(size(actions));
+                    probs = obj.piNet.precomputedResponses(ind) + eps*ones(size(actions));
                 end
                 % prune away illegal actions
                 validactions = actions([1,l+3:obj.total_coins]);
@@ -249,12 +248,12 @@ classdef DeepAgent < Player
                         all_beliefs_hands((i-1)*m+1:i*m,i:n+i-1)...
                             = all_beliefs;
                     end
+                    obj.obsNet.precomputedResponses = all_beliefs_hands;
                     % append last_bet
                     last_bet = obj.all_lastbets(:,1);
                     all_beliefs_hands = [all_beliefs_hands, repmat(last_bet,6,1)];
-                    obj.allBeliefsHands = all_beliefs_hands;
                     % Precompute pis
-                    obj.allPis = (obj.piNet.eval(all_beliefs_hands'))';
+                    obj.piNet.precomputedResponses = (obj.piNet.eval(all_beliefs_hands'))';
                     % append on all possible actions
                     actions = [-1,0:obj.total_coins];
                     [m,n] = size(all_beliefs_hands);
@@ -263,7 +262,7 @@ classdef DeepAgent < Player
                         all_q_inps((i-1)*m+1:i*m,:) = [all_beliefs_hands,...
                             ones(m,1)*actions(i)];
                     end
-                    obj.allQvals = obj.QNet.eval(all_q_inps');
+                    obj.QNet.precomputedResponses = obj.QNet.eval(all_q_inps');
                 end
                 obj.gamesSinceLastTrain = 0;
             end
@@ -357,9 +356,9 @@ classdef DeepAgent < Player
             bet2sub = @(bet) (bet == -10) + (bet ~= -10).*(bet+2);
             a2sub = @(a) a + 2;
             if(size(b,2) > 1)
-                ind = sub2ind(([obj.total_coins+2, obj.total_coins+2, obj.total_coins+2, obj.coins_per_player obj.total_coins+2]),bet2sub(b(3,:)),bet2sub(b(2,:)),bet2sub(b(1,:)),h+1,a2sub(a));
+                ind = sub2ind(([obj.total_coins+2, obj.total_coins+2, obj.total_coins+2, obj.coins_per_player+1, obj.total_coins+2]),bet2sub(b(3,:)),bet2sub(b(2,:)),bet2sub(b(1,:)),h+1,a2sub(a));
             else
-                ind = sub2ind(([obj.total_coins+2, obj.total_coins+2, obj.total_coins+2, obj.coins_per_player obj.total_coins+2]),bet2sub(b(3)),bet2sub(b(2)),bet2sub(b(1)),h+1,a2sub(a));
+                ind = sub2ind(([obj.total_coins+2, obj.total_coins+2, obj.total_coins+2, obj.coins_per_player+1, obj.total_coins+2]),bet2sub(b(3)),bet2sub(b(2)),bet2sub(b(1)),h+1,a2sub(a));
             end
         end
     end
