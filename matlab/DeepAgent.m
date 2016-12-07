@@ -178,7 +178,7 @@ classdef DeepAgent < Player
                 if isconfigured(obj.piNet.net)
                     ind = obj.bet_action2ind(o,-1,obj.hand);
 %                     probs = obj.piNet.eval([b;l]) + eps*ones(size(actions));
-                    probs = obj.piNet.precomputedResponses(ind) + eps*ones(size(actions));
+                    probs = obj.piNet.precomputedResponses(ind,:)' + eps*ones(size(actions));
                 end
                 % prune away illegal actions
                 validactions = actions([1,l+3:obj.total_coins]);
