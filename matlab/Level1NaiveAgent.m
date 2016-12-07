@@ -57,6 +57,11 @@ classdef Level1NaiveAgent < Player
                     next_bet = known_coins;
             end
             
+            if(next_bet <= last_bets(1))
+                next_bet = -1;
+            end
+            next_bet = min(20,next_bet);
+            
         end
         function debrief(obj, reward, total_heads, hand);
             return;
