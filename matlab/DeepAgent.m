@@ -324,7 +324,9 @@ classdef DeepAgent < Player
             max_Qvals = max(Qvals,[],2);
             % Fill results into Y in non-nan spots
             Y = buffer(:,obj.total_coins+4);
-            Y(non_nan_bps) = Y(non_nan_bps) + max_Qvals;
+            if(~isempty(inps_non_nan))
+                Y(non_nan_bps) = Y(non_nan_bps) + max_Qvals;
+            end
             
             % Train the net
             X = X';
