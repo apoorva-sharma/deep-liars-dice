@@ -38,7 +38,8 @@ player4.training = true;
 playerlist = {player1 player2 player3 player4};
 
 tic
-niter = 10000;
+
+niter = 50000;
 h = waitbar(0,'Please wait...');
 for iter = 1:niter
     waitbar(iter/niter);
