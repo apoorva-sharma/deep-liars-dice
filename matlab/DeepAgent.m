@@ -209,7 +209,6 @@ classdef DeepAgent < Player
         end
         
         function [] = debrief(obj,reward,total_heads,hand)
-            obj.gamesSinceLastTrain = obj.gamesSinceLastTrain + 1;
             if isempty(obj.o_log)
                 return % no need to do anything if we didn't really play
             end
@@ -232,12 +231,17 @@ classdef DeepAgent < Player
             obj.QX.push([obj.b_log obj.l_log obj.a_log obj.r_log...
                                 obj.bp_log obj.lp_log]);
                             
-            % decide whether to train
-            if obj.gamesSinceLastTrain >= obj.gamesBetweenTraining
+            % train the nets if necessary
+            obj.obsNet.time_since_last_train = obj.obsNet.time_since_last_train + 1;
+            obj.piNet.time_since_last_train = obj.piNet.time_since_last_train + 1;
+            obj.QNet.time_since_last_train = obj.QNet.time_since_last_train + 1;
+            if (obj.obsNet.time_since_last_train >= obj.obsNet.iterations_between_training) 
                 if(obj.training)
                     obj.trainObserverNetwork();
                     obj.trainQNetwork();
                     obj.trainPiNetwork();
+
+                    % Precompute every output of the newly trained system
                     % Precompute beliefs
                     all_beliefs =...
                         (obj.obsNet.eval(obj.all_lastbets'))';
@@ -264,7 +268,6 @@ classdef DeepAgent < Player
                     end
                     obj.QNet.precomputedResponses = obj.QNet.eval(all_q_inps');
                 end
-                obj.gamesSinceLastTrain = 0;
             end
         end
         
