@@ -4,8 +4,8 @@ total_coins = coins_per_player*4;
 oneHotEye = eye(total_coins+1-coins_per_player);
 
 %% Initialize Nets
-piNet = initPiNet(total_coins, [20,20]);
-QNet = initQNet(total_coins, [20,20]);
+piNet = initPiNet(total_coins, [20 20 20]);
+QNet = initQNet(total_coins, [20 20 20]);
 
 pPiNet = PersistentNet(piNet);
 pQNet = PersistentNet(QNet);
