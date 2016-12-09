@@ -2,7 +2,6 @@ function [ net ] = initPiNet( total_coins, hiddenLayerSize )
 %INITPINET Initializes Pi neural network
 %   Detailed explanation goes here
 
-    inputsize = total_coins + 2; % [b,l]
     outputsize = total_coins + 2; % one_hot over actions
     
     net = patternnet(hiddenLayerSize);

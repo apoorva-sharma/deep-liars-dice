@@ -2,7 +2,6 @@ function [ net ] = initQNet( total_coins, hiddenLayerSize )
 %INITQNET Initializes Q neural network
 %   Detailed explanation goes here
 
-    inputsize = total_coins + 3; % [b,l,a]
     outputsize = 1; % just a Q value
     
     trainFcn = 'trainlm';  % Levenberg-Marquardt backpropagation.
