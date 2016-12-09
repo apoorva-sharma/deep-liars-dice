@@ -228,13 +228,16 @@ classdef DeepAgent < Player
             end
 
             % QNet
-            obj.QX.push([obj.b_log obj.l_log obj.a_log obj.r_log...
-                                obj.bp_log obj.lp_log]);
-                            
-            % train the nets if necessary
-            obj.obsNet.time_since_last_train = obj.obsNet.time_since_last_train + 1;
-            obj.piNet.time_since_last_train = obj.piNet.time_since_last_train + 1;
-            obj.QNet.time_since_last_train = obj.QNet.time_since_last_train + 1;
+            if obj.training
+                obj.QX.push([obj.b_log obj.l_log obj.a_log obj.r_log...
+                                    obj.bp_log obj.lp_log]);
+
+                % train the nets if necessary
+                obj.obsNet.time_since_last_train = obj.obsNet.time_since_last_train + 1;
+                obj.piNet.time_since_last_train = obj.piNet.time_since_last_train + 1;
+                obj.QNet.time_since_last_train = obj.QNet.time_since_last_train + 1;
+            end
+            
             if (obj.obsNet.time_since_last_train >= obj.obsNet.iterations_between_training) 
                 if(obj.training)
                     obj.trainObserverNetwork();
@@ -316,6 +319,7 @@ classdef DeepAgent < Player
                 acts(num_samps*(i-1) + 1 : num_samps*i) = actions(i);
             end
             qx = [qx;acts];
+            illegal_bets = and((qx(obj.total_coins+2,:)>=acts), (acts ~= -1));
             % Run through NN
             if(isconfigured(obj.QNet.net))
                 Qvals = obj.QNet.eval(qx);
@@ -323,7 +327,8 @@ classdef DeepAgent < Player
                 Qvals = zeros(1,size(qx,2));
             end
             % Reshape and pick out max_a Q([bp,lp,a])
-            Qvals = reshape(Qvals,length(actions),[])';
+            Qvals(illegal_bets) = -Inf;
+            Qvals = reshape(Qvals,[],length(actions));
             max_Qvals = max(Qvals,[],2);
             % Fill results into Y in non-nan spots
             Y = buffer(:,obj.total_coins+4);
