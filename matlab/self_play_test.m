@@ -147,6 +147,15 @@ xlabel 'Probability of Loss'
 ylabel 'Probability Desnity of Estimate'
 grid on
 
+%% DeepAgent vs NaiveAgents
+
+player1.training = false;
+playerlist = {player1 naive1 naive2 naive3};
+niter = 15000;
+
+[ losses_spvsnaive,h,confints_spvsnaive ] = simPerformance( playerlist, niter );
+legend('SelfPlayAgent','Naive1','Naive2','Naive3');
+
 %% Train a fresh DeepAgent against 3 trained DeepAgents to find performance
 
 % init nets
@@ -282,5 +291,53 @@ legend('SelfPlayBestResponse','NaiveAgent','NaiveAgent','NaiveAgent',...
 xlabel 'Probability of Loss'
 ylabel 'Probability Desnity of Estimate'
 grid on
+
+%% Barscene: SelfPlayAgent, SelfPlayBR, Naive, Conservtive
+
+player1.training = false;
+player5.training = false;
+
+playerlist = {player1, player5 naive1 cons1};
+
+losses_spa_spbr_n_c = [0,0,0,0];
+niter = 30000;
+h = waitbar(0,'Please wait...');
+for iter = 1:niter
+    waitbar(iter/niter);
+    ordering = randperm(4);
+    env = Environment(playerlist(ordering), coins_per_player, true);
+    loser = env.playGame();
+    losses_spa_spbr_n_c(ordering(loser)) = losses_spa_spbr_n_c(ordering(loser)) + 1;
+end
+close(h)
+
+%%
+
+h=figure();
+set(h,'Units','Points');
+set(h,'Position',[650,550,350,300]);
+pvals = linspace(0.2,0.3,500);
+alpha = losses_spa_spbr_n_c;
+beta = sum(losses_spa_spbr_n_c) - losses_spa_spbr_n_c;
+lossDist1 = betapdf(pvals,alpha(1),beta(1));
+lossDist2 = betapdf(pvals,alpha(2),beta(2));
+lossDist3 = betapdf(pvals,alpha(3),beta(3));
+lossDist4 = betapdf(pvals,alpha(4),beta(4));
+
+title('Distribution of loss rate of each player');
+hold on
+plot(pvals,lossDist1);
+plot(pvals,lossDist2);
+plot(pvals,lossDist3);
+plot(pvals,lossDist4);
+hold off
+legend('SelfPlay','SelfPlayBR','NaiveAgent','Conservative',...
+    'Location','best');
+
+xlabel 'Loss Rate'
+ylabel 'Probability Desnity of Estimate'
+grid on
+
+% Compute Conf ints
 
 

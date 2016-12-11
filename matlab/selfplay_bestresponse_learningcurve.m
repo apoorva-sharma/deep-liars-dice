@@ -1,6 +1,5 @@
 %% Load an old dataset with trained SelfPlayAgents
 
-load selfplay_50000trains_dec6_945.mat
 
 %% Init a fresh DeepAgent
 % init nets
@@ -26,6 +25,7 @@ QXbuf5 = CircBuffer([Q_buffer_size, 46]);
 % init new deep agent
 player5 = DeepAgent(pObsNet5, pPiNet5, pQNet5, obsXbuf5, obsYbuf5, PiXbuf5, QXbuf5);
 
+player5.eta = 1;
 
 
 %% run training and testing to plot a learning curve of sorts
@@ -86,13 +86,15 @@ totallosses = [untrainedlosses; totallosses];
 totalwins = [untrainedwins; totalwins];
 
 %% Plot Learning Curve
-num_train_iters = [0:nouteriter]*ntrainiter;
 num_train_iters = [1:nouteriter]*ntrainiter;
 
+hc = figure();
+set(hc,'Units','Points');
+set(hc,'Position',[650,550,350,300]);
+
 loss_rate = totallosses./(totallosses + totalwins);
-figure(1)
-plot(num_train_iters, loss_rate)
-xlabel('Number of Self Play Games Played');
-ylabel('Average loss rate against 3 SelfPlayAgents');
-title('Training Curve');
+plot(num_train_iters, loss_rate(2:end))
+xlabel('Number of Games Played');
+ylabel('Average Loss Rate');
+title('Training Curve: Best Response vs 3SelfPlayAgents');
 grid on;
